@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base styles */
+:root {
+  --color-primary: #0ea5e9;
+  --color-primary-dark: #0284c7;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+/* Editor container */
+.editor-container {
+  @apply relative;
+}
+
+/* Toolbar styles */
+.toolbar {
+  @apply sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm;
+}
+
+.toolbar-group {
+  @apply flex items-center gap-1 px-2 py-1;
+}
+
+.toolbar-divider {
+  @apply h-6 w-px bg-gray-300 mx-1;
+}
+
+/* Editor area */
+.editor-area {
+  @apply flex-1 overflow-auto;
+  min-height: 600px;
+}
+
+.editor-content {
+  @apply min-h-[600px] p-8 outline-none;
+}
+
+/* Preview area */
+.preview-area {
+  @apply w-[375px] border-l border-gray-200 bg-white overflow-hidden;
+  height: calc(100vh - 64px);
+}
+
+/* Slate editor styles */
+.slate-editor {
+  @apply prose prose-sm sm:prose lg:prose-lg max-w-none;
+}
+
+.slate-editor [data-slate-placeholder] {
+  @apply text-gray-400 opacity-100;
+}
+
+/* Selection styles */
+.slate-editor ::selection {
+  @apply bg-primary-200;
+}
+
+/* Format button states */
+.format-button {
+  @apply p-2 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.format-button.is-active {
+  @apply bg-primary-100 text-primary-700;
+}
+
+/* Template card */
+.template-card {
+  @apply relative overflow-hidden rounded-lg border-2 border-gray-200 cursor-pointer transition-all;
+}
+
+.template-card:hover {
+  @apply border-primary-300 shadow-md;
+}
+
+.template-card.is-selected {
+  @apply border-primary-500 ring-2 ring-primary-200;
+}
+
+/* Mobile preview */
+.mobile-preview {
+  @apply bg-white rounded-lg overflow-hidden shadow-lg;
+}
+
+.mobile-preview-frame {
+  @apply w-[375px] h-[667px] overflow-auto;
+}
+
+/* Toast notifications */
+.toast-container {
+  @apply fixed bottom-4 right-4 z-50 flex flex-col gap-2;
+}
+
+.toast {
+  @apply px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in;
+}
+
+.toast-success {
+  @apply bg-green-500 text-white;
+}
+
+.toast-error {
+  @apply bg-red-500 text-white;
+}
+
+.toast-info {
+  @apply bg-blue-500 text-white;
+}
+
+.toast-warning {
+  @apply bg-yellow-500 text-white;
+}
+
+/* Animations */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400;
+}

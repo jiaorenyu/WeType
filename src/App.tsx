@@ -1,252 +1,239 @@
-import React, { useState, useEffect } from 'react';
-import { Select, Button, message, Space } from 'antd';
-import { useStore } from './store';
-import { parseMarkdown, generateHtmlWithStyles } from './utils/markdownParser';
-import StylePanel from './components/StylePanel';
+import { useState, useCallback, useMemo } from 'react';
+import { Descendant } from 'slate';
+import { AppEditor } from './components/Editor';
+import { MobilePreview } from './components/Preview';
+import { TemplateSelector } from './components/Templates';
+import { Header, Modal, ToastContainer, ContentTypeSuggestion } from './components/common';
+import { useClipboard, useToastStore } from './hooks';
+import { generateInlineHtml, generateFallbackText } from './utils';
+import { templates, exampleArticles, getTemplateById } from './data';
+import type { Template, ContentType } from './types';
 
-const App: React.FC = () => {
-  const {
-    content,
-    setContent,
-    currentPreset,
-    setCurrentPreset,
-    customStyle,
-    isMobilePreview,
-    setIsMobilePreview,
-    presets
-  } = useStore();
+function App() {
+  const [editorContent, setEditorContent] = useState<Descendant[]>([
+    {
+      type: 'paragraph',
+      children: [{ text: '' }],
+    },
+  ]);
+  
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showExampleModal, setShowExampleModal] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [contentType, setContentType] = useState<ContentType>('unknown');
+  const [confidence, setConfidence] = useState(0);
+  const [showSuggestion, setShowSuggestion] = useState(true);
 
-  const [stylePanelVisible, setStylePanelVisible] = useState(false);
-  const [parsedContent, setParsedContent] = useState('');
-  const [isCopied, setIsCopied] = useState(false);
+  const { copyToClipboard } = useClipboard();
+  const addToast = useToastStore((state) => state.addToast);
 
-  // 解析 Markdown 内容
-  useEffect(() => {
-    const html = parseMarkdown(content);
-    setParsedContent(html);
-  }, [content]);
-
-  // 示例文章内容
-  const sampleContent = `# 欢迎使用 WeType
-
-## 什么是 WeType？
-
-WeType 是一款 **免费、纯前端、开箱即用** 的公众号自动排版工具，支持多种预设风格与深度自定义，让你专注于内容创作，一键生成符合公众号规范的排版样式。
-
-## 主要功能
-
-- ✅ 支持 Markdown 语法
-- ✅ 实时预览效果
-- ✅ 多种预设风格
-- ✅ 深度自定义样式
-- ✅ 一键复制 HTML
-- ✅ 本地数据存储
-
-## 如何使用
-
-1. 在左侧编辑器中输入或粘贴 Markdown 内容
-2. 选择或自定义风格
-3. 实时预览排版效果
-4. 点击「复制 HTML」按钮
-5. 粘贴到公众号编辑器中
-
-## 示例内容
-
-### 列表
-
-- 无序列表项 1
-- 无序列表项 2
-  - 嵌套列表项
-  - 嵌套列表项
-
-1. 有序列表项 1
-2. 有序列表项 2
-
-### 引用
-
-> 这是一个引用块，用于引用他人的话或重要内容。
-> 支持多行引用。
-
-### 代码块
-
-\`\`\`javascript
-// 这是一个 JavaScript 代码块
-function hello() {
-  console.log('Hello, WeType!');
-}
-\`\`\`
-
-### 图片
-
-![示例图片](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=wechat%20article%20illustration%20minimalist%20style&image_size=square)
-
-### 表格
-
-| 功能 | 描述 | 状态 |
-|------|------|------|
-| Markdown 解析 | 支持完整的 Markdown 语法 | ✅ |
-| 实时预览 | 所见即所得 | ✅ |
-| 风格定制 | 支持多种预设风格 | ✅ |
-| 自定义样式 | 深度调整样式参数 | ✅ |
-| 复制 HTML | 一键复制到剪贴板 | ✅ |
-| 本地存储 | 自动保存草稿 | ✅ |
-
-## 结语
-
-WeType 致力于让公众号排版变得简单、高效、美观。希望它能成为你内容创作的得力助手！`;
-
-  // 清空编辑器内容
-  const handleClear = () => {
-    setContent('');
-  };
-
-  // 加载示例文章
-  const handleLoadSample = () => {
-    setContent(sampleContent);
-  };
-
-  // 复制 HTML 到剪贴板
-  const handleCopyHtml = async () => {
-    try {
-      // 获取当前使用的风格配置
-      const currentStyle = presets.find(p => p.name === currentPreset)?.config || customStyle;
-      
-      // 生成带样式的 HTML
-      const htmlToCopy = generateHtmlWithStyles(parsedContent, currentStyle);
-      
-      // 创建一个临时元素
-      const tempElement = document.createElement('div');
-      tempElement.innerHTML = htmlToCopy;
-      document.body.appendChild(tempElement);
-      
-      // 选择并复制内容
-      const range = document.createRange();
-      range.selectNodeContents(tempElement);
-      const selection = window.getSelection();
-      if (selection) {
-        selection.removeAllRanges();
-        selection.addRange(range);
-        
-        await document.execCommand('copy');
-        
-        selection.removeAllRanges();
-        document.body.removeChild(tempElement);
-        
-        message.success('HTML 已成功复制到剪贴板！');
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      }
-    } catch (error) {
-      console.error('复制失败:', error);
-      message.error('复制失败，请手动复制。');
+  // Get current template for preview
+  const currentTemplate = useMemo((): Template | null => {
+    if (selectedTemplate) return selectedTemplate;
+    if (contentType !== 'unknown' && confidence > 0.3) {
+      return getTemplateById(getRecommendedTemplate(contentType)) || null;
     }
-  };
+    return null;
+  }, [selectedTemplate, contentType, confidence]);
 
-  // 切换手机预览模式
-  const handleToggleMobilePreview = () => {
-    setIsMobilePreview(!isMobilePreview);
-  };
+  // Handle content change
+  const handleContentChange = useCallback((content: Descendant[]) => {
+    setEditorContent(content);
+  }, []);
 
-  // 打开风格自定义面板
-  const handleOpenStylePanel = () => {
-    setStylePanelVisible(true);
-  };
+  // Handle content type detection
+  const handleContentTypeChange = useCallback((type: string, conf: number) => {
+    setContentType(type as ContentType);
+    setConfidence(conf);
+  }, []);
 
-  // 关闭风格自定义面板
-  const handleCloseStylePanel = () => {
-    setStylePanelVisible(false);
-  };
+  // Handle template selection
+  const handleSelectTemplate = useCallback((template: Template) => {
+    setSelectedTemplate(template);
+    setShowTemplateModal(false);
+    addToast({
+      message: `已应用【${template.name}】模板`,
+      type: 'success',
+      duration: 2000,
+    });
+  }, [addToast]);
 
-  // 应用当前风格的样式
-  const getCurrentStyle = () => {
-    return presets.find(p => p.name === currentPreset)?.config || customStyle;
-  };
+  // Handle copy to clipboard
+  const handleCopy = useCallback(async () => {
+    setIsCopying(true);
+    
+    try {
+      // Generate inline HTML
+      const html = generateInlineHtml(editorContent, currentTemplate);
+      
+      // Copy to clipboard
+      const success = await copyToClipboard(html);
+      
+      if (success) {
+        // Show optional tip
+        setTimeout(() => {
+          addToast({
+            message: '💡 登录后可保存本次排版记录',
+            type: 'info',
+            duration: 4000,
+          });
+        }, 3500);
+      }
+    } catch {
+      // Fallback to plain text
+      const plainText = generateFallbackText(editorContent);
+      const success = await copyToClipboard(plainText);
+      
+      if (success) {
+        addToast({
+          message: '已复制纯文本（样式内联失败，请到公众号后台手动调整）',
+          type: 'warning',
+          duration: 5000,
+        });
+      }
+    } finally {
+      setIsCopying(false);
+    }
+  }, [editorContent, currentTemplate, copyToClipboard, addToast]);
 
-  const currentStyle = getCurrentStyle();
+  // Handle example selection
+  const handleSelectExample = useCallback((exampleId: string) => {
+    const example = exampleArticles.find((e) => e.id === exampleId);
+    if (example) {
+      setEditorContent(example.content);
+      setShowExampleModal(false);
+      addToast({
+        message: `已加载示例：${example.title}`,
+        type: 'success',
+        duration: 2000,
+      });
+    }
+  }, [addToast]);
+
+  // Apply recommended template
+  const handleApplyRecommendation = useCallback(() => {
+    if (contentType !== 'unknown') {
+      const templateId = getRecommendedTemplate(contentType);
+      const template = getTemplateById(templateId);
+      if (template) {
+        setSelectedTemplate(template);
+        addToast({
+          message: `已应用【${template.name}】模板`,
+          type: 'success',
+          duration: 2000,
+        });
+      }
+    }
+    setShowSuggestion(false);
+  }, [contentType, addToast]);
 
   return (
-    <div className="app-container">
-      {/* 头部导航栏 */}
-      <header className="header">
-        <div className="flex items-center">
-          <h1 className="text-xl font-bold">WeType - 轻悦公众号排版工坊</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <Select
-            value={currentPreset}
-            onChange={setCurrentPreset}
-            options={presets.map(p => ({ value: p.name, label: p.name }))}
-            style={{ width: 120 }}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <Header
+        onCopy={handleCopy}
+        onOpenTemplates={() => setShowTemplateModal(true)}
+        onShowExample={() => setShowExampleModal(true)}
+        isCopying={isCopying}
+      />
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col lg:flex-row gap-6 p-6 max-w-7xl mx-auto w-full h-[calc(100vh-80px)]">
+        {/* Editor area */}
+        <div className="flex-1 space-y-4">
+          {/* Content type suggestion */}
+          {showSuggestion && contentType !== 'unknown' && confidence > 0.2 && (
+            <ContentTypeSuggestion
+              type={contentType}
+              confidence={confidence}
+              templateName={currentTemplate?.name || '未选择'}
+              onConfirm={handleApplyRecommendation}
+              onDismiss={() => setShowSuggestion(false)}
+            />
+          )}
+
+          {/* Editor */}
+          <AppEditor
+            initialValue={editorContent}
+            onChange={handleContentChange}
+            template={currentTemplate}
+            onContentTypeChange={handleContentTypeChange}
           />
-          <Button type="primary" onClick={handleOpenStylePanel}>
-            自定义
-          </Button>
         </div>
-      </header>
 
-      {/* 主内容区 */}
-      <main className="main-content">
-        {/* 左侧编辑区 */}
-        <section className="editor-section">
-          <h2 className="text-lg font-semibold mb-4">编辑区</h2>
-          <div className="toolbar">
-            <Button size="small">H2</Button>
-            <Button size="small">H3</Button>
-            <Button size="small">粗体</Button>
-            <Button size="small">列表</Button>
-            <Button size="small">链接</Button>
-            <Button size="small">图片</Button>
-            <Button size="small">代码</Button>
-          </div>
-          <div className="editor-container">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="在此输入或粘贴 Markdown 内容..."
-            />
-          </div>
-          <div className="controls">
-            <Button onClick={handleClear}>清空</Button>
-            <Button onClick={handleLoadSample}>示例文章</Button>
-          </div>
-        </section>
-
-        {/* 右侧预览区 */}
-        <section className="preview-section">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">预览区</h2>
-            <Space>
-              <Button onClick={handleToggleMobilePreview}>
-                {isMobilePreview ? '桌面预览' : '手机预览'}
-              </Button>
-              <Button type="primary" onClick={handleCopyHtml}>
-                {isCopied ? '已复制' : '复制 HTML'}
-              </Button>
-            </Space>
-          </div>
-          <div className={`preview-container ${isMobilePreview ? 'mobile-preview' : ''}`}>
-            <div 
-              className="preview-content"
-              style={{
-                fontSize: `${currentStyle.baseFontSize}px`,
-                lineHeight: currentStyle.lineHeight,
-                color: currentStyle.textColor,
-                backgroundColor: currentStyle.bgColor,
-                padding: '20px'
-              }}
-              dangerouslySetInnerHTML={{ __html: parsedContent }}
-            />
-          </div>
-        </section>
+        {/* Preview area */}
+        <div className="hidden lg:block flex-shrink-0">
+          <MobilePreview
+            content={editorContent}
+            template={currentTemplate}
+          />
+        </div>
       </main>
 
-      {/* 风格自定义面板 */}
-      <StylePanel
-        visible={stylePanelVisible}
-        onCancel={handleCloseStylePanel}
-      />
+      {/* Template selector modal */}
+      <Modal
+        isOpen={showTemplateModal}
+        onClose={() => setShowTemplateModal(false)}
+        size="lg"
+      >
+        <TemplateSelector
+          templates={templates}
+          selectedId={selectedTemplate?.id || null}
+          onSelect={handleSelectTemplate}
+          onClose={() => setShowTemplateModal(false)}
+        />
+      </Modal>
+
+      {/* Example selector modal */}
+      <Modal
+        isOpen={showExampleModal}
+        onClose={() => setShowExampleModal(false)}
+        title="选择示例文章"
+        size="md"
+      >
+        <div className="space-y-3">
+          {exampleArticles.map((example) => (
+            <button
+              key={example.id}
+              onClick={() => handleSelectExample(example.id)}
+              className="w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-left transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center text-lg">
+                  {example.category === 'tech' ? '💻' : example.category === 'emotion' ? '💝' : '🌿'}
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-800">{example.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    {example.category === 'tech' ? '技术教程' : example.category === 'emotion' ? '情感故事' : '生活随笔'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </Modal>
+
+      {/* Toast notifications */}
+      <ToastContainer />
     </div>
   );
+}
+
+// Helper function
+const getRecommendedTemplate = (type: ContentType): string => {
+  const map: Record<ContentType, string> = {
+    tech: 'tech-minimal',
+    product: 'business-elegant',
+    emotion: 'midnight-radio',
+    life: 'literary-clean',
+    food: 'food-explore',
+    business: 'business-elegant',
+    news: 'minimal-bw',
+    unknown: 'minimal-bw',
+  };
+  return map[type] || 'minimal-bw';
 };
 
 export default App;
