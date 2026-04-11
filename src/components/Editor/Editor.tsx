@@ -21,26 +21,22 @@ export const AppEditor: React.FC<EditorProps> = ({
 }) => {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   
-  const [value, setValue] = useState<Descendant[]>(
-    initialValue || [
+  // Keep value as internal state for editor changes
+  const [value, setValue] = useState<Descendant[]>(() => {
+    return initialValue || [
       {
-        type: 'paragraph',
+        type: 'paragraph' as const,
         children: [{ text: '' }],
       },
-    ]
-  );
+    ];
+  });
 
-  // Sync initialValue changes from parent
+  // When key changes (parent forces re-create), reset value from initialValue
   React.useEffect(() => {
-    if (initialValue && JSON.stringify(initialValue) !== JSON.stringify(value)) {
+    if (initialValue) {
       setValue(initialValue);
-      // Also reset editor selection to start
-      Transforms.select(editor, {
-        anchor: { path: [0, 0], offset: 0 },
-        focus: { path: [0, 0], offset: 0 },
-      });
     }
-  }, [initialValue, editor]);
+  }, [initialValue]);
 
   // Content type detection - simplified
   const plainText = useMemo(() => {

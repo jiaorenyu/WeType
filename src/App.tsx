@@ -17,6 +17,9 @@ function App() {
     },
   ]);
   
+  // Use this to force re-render the editor when content changes externally
+  const [editorKey, setEditorKey] = useState(0);
+  
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showExampleModal, setShowExampleModal] = useState(false);
@@ -102,6 +105,7 @@ function App() {
     const example = exampleArticles.find((e) => e.id === exampleId);
     if (example) {
       setEditorContent(example.content);
+      setEditorKey(prev => prev + 1); // Force re-render editor
       setShowExampleModal(false);
       addToast({
         message: `已加载示例：${example.title}`,
@@ -155,6 +159,7 @@ function App() {
 
           {/* Editor */}
           <AppEditor
+            key={editorKey}
             initialValue={editorContent}
             onChange={handleContentChange}
             template={currentTemplate}
