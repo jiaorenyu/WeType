@@ -1,8 +1,10 @@
-# CODEBUDDY.md This file provides guidance to CodeBuddy when working with code in this repository.
+# CODEBUDDY.md
+
+This file provides guidance to CodeBuddy when working on this repository.
 
 ## Project Overview
 
-WeType（轻悦公众号排版工坊）是一款纯前端的微信公众号排版工具。用户在左侧输入 Markdown，右侧实时预览带样式的 HTML，并可一键复制粘贴到公众号编辑器。无后端依赖，所有数据存储在 localStorage。
+WriteNow 是一款纯前端、免登录的公众号排版工具。用户在左侧输入 Markdown,右侧实时预览带样式的 HTML,并可一键复制粘贴到公众号编辑器。
 
 ## Commands
 
@@ -14,67 +16,91 @@ npm run preview    # 预览生产构建产物
 npm run lint       # ESLint 检查（ts/tsx），零警告策略（--max-warnings 0）
 ```
 
-无测试框架，目前项目不含测试。
+无测试框架。
 
 ## Architecture
 
 ### Tech Stack
 
-- **框架**：React 18 + TypeScript，Vite 构建
-- **状态管理**：Zustand（单一全局 store）
-- **UI 组件**：Ant Design 5
-- **样式**：Tailwind CSS 4 + `src/index.css` 自定义 CSS 类
-- **Markdown 解析**：`marked` 库，DOMPurify 净化 XSS
+- **框架**: React 18 + TypeScript，Vite 构建
+- **状态管理**: React Hooks（无外部状态库）
+- **编辑器**: CodeMirror 6
+- **Markdown 解析**: markdown-it + highlight.js
+- **样式内联**: juice
+- **样式**: 原生 CSS（无 TailwindCSS）
 
 ### Data Flow
 
 ```
-用户输入 Markdown
+用户在 CodeMirror 编辑 Markdown
     ↓
-useStore.setContent()  →  自动同步 localStorage
+useState(content) 更新
     ↓
-App.tsx useEffect 监听 content 变化
+parseMarkdown() 解析为 HTML
     ↓
-parseMarkdown()  →  marked 解析 + DOMPurify 净化 + img 响应式处理
+Preview 组件渲染预览（带手机框装饰）
     ↓
-dangerouslySetInnerHTML 渲染预览区
+用户点击「复制到公众号」
     ↓
-handleCopyHtml()  →  generateHtmlWithStyles() 内嵌 <style> 标签
-                   →  document.execCommand('copy') 写入剪贴板
+generateWeChatHtml() 内联样式
+    ↓
+copyToClipboard() 写入剪贴板
 ```
 
-### State（`src/store/index.ts`）
+### Theme System
 
-Zustand store 管理全部应用状态，每次变更自动写入 localStorage（键名前缀 `wetype_`）：
+三套内置主题,定义在 `src/themes.ts`:
 
-| 状态字段 | 类型 | 说明 |
-|---|---|---|
-| `content` | `string` | Markdown 编辑器内容 |
-| `currentPreset` | `string` | 当前选中的预设风格名称 |
-| `customStyle` | `StyleConfig` | 自定义风格配置对象 |
-| `isMobilePreview` | `boolean` | 是否启用手机宽度预览（375px） |
-| `presets` | `PresetStyle[]` | 内置预设列表（简约/优雅/科技/文艺），硬编码在 store 中 |
+- **geek** (极客代码): 深色代码块,主色调 #1A5F7A
+- **literary** (文艺阅读): 衬线字体,大留白,主色调 #8B4513
+- **minimal** (简约商务): 干净利落,主色调 #2c3e50
 
-### Style System（`src/types/index.ts`）
-
-`StyleConfig` 接口定义所有可调样式参数：主色调、正文色、背景色、各级字号、行距、段落间距、引用块颜色/圆角、代码块颜色/圆角。
-
-**样式优先级**：选中预设时使用 `presets[n].config`；选中"自定义"时使用 `customStyle`。当前逻辑：`presets.find(p => p.name === currentPreset)?.config || customStyle`——即当 `currentPreset` 名称与任一预设匹配时使用预设，否则 fallback 到 customStyle。
+切换主题时触发 0.2s 淡入淡出动画。
 
 ### Key Components
 
-- **`App.tsx`**：唯一页面组件，包含编辑区（`<textarea>`）、工具栏（H2/H3/粗体等按钮，目前无实际插入逻辑）、预览区（`dangerouslySetInnerHTML`）、顶部预设选择器。
-- **`StylePanel.tsx`**：Ant Design `Modal` 实现的自定义风格面板，本地维护 `localStyle` 临时状态，保存时才写入全局 store。
-- **`utils/markdownParser.ts`**：两个纯函数：`parseMarkdown`（输入 Markdown → 输出净化 HTML）和 `generateHtmlWithStyles`（输入 HTML + StyleConfig → 输出带内联 `<style>` 的完整 HTML 片段，用于粘贴到公众号）。
+- **App.tsx**: 主应用组件,管理所有状态（content, currentTheme, 复制状态等）
+- **Editor.tsx**: CodeMirror 6 编辑器封装,支持语法高亮
+- **Preview.tsx**: 预览组件,带手机框装饰（375px 宽度）
+- **QuickHints.tsx**: 编辑器为空时显示的语法快捷提示条
 
-### Copy-to-WeChat 机制
+### Utils
 
-公众号编辑器不支持外部 CSS 文件，因此复制时需将所有样式内联。`generateHtmlWithStyles` 生成一个包含 `<style>` 标签的 HTML 字符串，通过 `document.execCommand('copy')` 写入剪贴板（非 Clipboard API，保留富文本格式）。
+- **markdown.ts**: Markdown 解析（markdown-it）+ 代码高亮（highlight.js）
+- **juice.ts**: 样式内联,生成微信兼容的 HTML
+- **clipboard.ts**: 剪贴板操作,支持 text/html 和 text/plain 两种格式
 
-### localStorage Keys
+### Type Definitions
 
-| Key | 内容 |
-|---|---|
-| `wetype_draft_content` | Markdown 草稿 |
-| `wetype_last_preset` | 上次选中的预设名称 |
-| `wetype_custom_style` | 自定义风格 JSON |
+类型定义位于 `src/types.ts` 和 `src/types/index.d.ts`:
+
+- **ThemeType**: 'geek' | 'literary' | 'minimal'
+- **ThemeConfig**: 主题配置接口（name, displayName, css, preview）
+
+为第三方包创建了类型声明（juice, markdown-it, codemirror/*）。
+
+## Key Features
+
+1. **Paste Detection**: 监听全局 `paste` 事件,自动识别 Markdown 内容并提示
+2. **Theme Animation**: 切换时预览区 `opacity` 从 1→0→1,过渡 0.2s
+3. **Copy Feedback**: 按钮文字变为"✓ 已复制!",2 秒后恢复
+4. **Quick Hints**: 编辑器为空时底部显示语法提示,打字后自动淡出
+5. **Mobile Preview**: 预览区模拟 iPhone 宽度（375px）,带刘海装饰
+
+## WeChat Compatibility
+
+样式内联化处理:
+
+1. 使用 `juice` 将 CSS 转换为行内 style 属性
+2. 将 `<div>` 替换为 `<section>`（微信更友好）
+3. 移除不支持的 CSS（`display: flex/grid`, `transform`）
+4. 压缩 style 属性空格
+
+## Build Output
+
+构建产物分块:
+
+- `index-D10KEsDG.js` (159KB): 应用代码
+- `codemirror-ChONrlb0.js` (1.1MB): CodeMirror 及相关包
+- `markdown-C5NOa6oX.js` (1MB): highlight.js（支持 190+ 语言）
+- `juice-BT_erOZs.js` (334KB): juice 内联库
