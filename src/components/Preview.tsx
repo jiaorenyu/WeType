@@ -1,4 +1,5 @@
 import React from 'react';
+import { getThemeByName } from '../themes';
 
 interface PreviewProps {
   html: string;
@@ -6,7 +7,9 @@ interface PreviewProps {
   isTransitioning: boolean;
 }
 
-const Preview: React.FC<PreviewProps> = ({ html, isTransitioning }) => {
+const Preview: React.FC<PreviewProps> = ({ html, themeName, isTransitioning }) => {
+  const theme = getThemeByName(themeName);
+
   return (
     <div className="preview-container">
       <div className="phone-frame">
@@ -18,7 +21,8 @@ const Preview: React.FC<PreviewProps> = ({ html, isTransitioning }) => {
             transition: 'opacity 0.2s ease-in-out'
           }}
         >
-          <div dangerouslySetInnerHTML={{ __html: html }} />
+          <style dangerouslySetInnerHTML={{ __html: theme.css }} />
+          <div className="article-content" dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </div>
     </div>

@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { EditorView } from '@codemirror/view';
+import { EditorView, basicSetup } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup } from '@codemirror/basic-setup';
 
 interface EditorProps {
   value: string;
@@ -19,42 +17,34 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, onFocus, onBlur }) => 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const startState = EditorState.create({
-      doc: value,
-      extensions: [
-        basicSetup,
-        markdown(),
-        oneDark,
-        EditorView.updateListener.of((update: { docChanged: boolean; state: { doc: { toString: () => string } } }) => {
-          if (update.docChanged) {
-            onChange(update.state.doc.toString());
-          }
-        }),
-        EditorView.theme({
-          '&': { height: '100%' },
-          '.cm-scroller': { overflow: 'auto', height: '100%' },
-          '.cm-content': { padding: '24px', fontFamily: "'JetBrains Mono', 'Fira Code', 'Courier New', monospace", fontSize: '14px' },
-          '.cm-editor': { height: '100%' },
-          '.cm-focused': { outline: 'none' }
-        })
-      ]
-    });
+    try {
+      const startState = EditorState.create({
+        doc: value,
+        extensions: [
+          basicSetup,
+          markdown(),
+          EditorView.updateListener.of((update: any) => {
+            if (update.docChanged) {
+              onChange(update.state.doc.toString());
+            }
+          })
+        ]
+      });
 
-    const view = new EditorView({
-      state: startState,
-      parent: containerRef.current
-    });
+      const view = new EditorView({
+        state: startState,
+        parent: containerRef.current
+      });
 
-    viewRef.current = view;
+      viewRef.current = view;
 
-    // 焦点事件
-    view.dom.addEventListener('focus', () => onFocus?.());
-    view.dom.addEventListener('blur', () => onBlur?.());
-
-    return () => {
-      view.destroy();
-      viewRef.current = null;
-    };
+      return () => {
+        view.destroy();
+        viewRef.current = null;
+      };
+    } catch (error) {
+      console.error('Editor initialization error:', error);
+    }
   }, []);
 
   // 当外部 value 改变时更新编辑器
@@ -80,7 +70,8 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, onFocus, onBlur }) => 
         border: '2px solid transparent',
         borderRadius: '12px',
         overflow: 'hidden',
-        transition: 'border-color 0.3s ease'
+        transition: 'border-color 0.3s ease',
+        backgroundColor: '#282c34'
       }}
       onFocus={(e) => {
         e.currentTarget.style.borderColor = '#1A5F7A';

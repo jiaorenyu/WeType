@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Editor from './components/Editor';
+import SimpleEditor from './components/SimpleEditor';
 import Preview from './components/Preview';
 import QuickHints from './components/QuickHints';
 import { themes, getThemeByName } from './themes';
@@ -128,7 +128,7 @@ const App: React.FC = () => {
         {/* 编辑器 */}
         <section className="editor-section">
           <div className="editor-container" ref={editorRef}>
-            <Editor
+            <SimpleEditor
               value={content}
               onChange={setContent}
             />
