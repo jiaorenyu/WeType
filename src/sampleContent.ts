@@ -85,7 +85,7 @@ print(factorial(5))
 
 [访问 WriteNow](https://github.com)
 
-![示例图片](https://images.unsplash.com/photo-1516116216624-53e2d2a58a32?w=600&h=300&fit=crop)
+![示例图片](https://pic.616pic.com/ys_bnew_img/00/03/91/1nBhztGzIW.jpg)
 
 > 💡 提示：图片需要先上传到公众号后台，获取链接后替换 markdown 中的图片地址。
 
@@ -93,7 +93,7 @@ print(factorial(5))
 
 1. 在公众号后台上传图片
 2. 获取图片链接
-3. 使用格式：![描述](图片链接)
+3. 使用格式：\`![描述](图片链接)\`
 4. 图片会自动居中显示并添加圆角
 
 ### 表格

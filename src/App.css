@@ -27,7 +27,6 @@ body {
   padding: 16px 32px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .logo {
@@ -50,32 +49,52 @@ body {
   letter-spacing: 0.5px;
 }
 
-.theme-selector {
+/* 工具栏 */
+.toolbar {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.theme-button {
-  padding: 8px 20px;
-  border: 2px solid #e0e0e0;
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 编辑器底部 */
+.editor-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
   background: white;
-  color: #666;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 12px 12px;
 }
 
-.theme-button:hover {
-  border-color: var(--theme-color, #1A5F7A);
-  color: var(--theme-color, #1A5F7A);
+/* 预览底部 */
+.preview-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 12px 12px;
 }
 
-.theme-button.active {
-  border-color: var(--theme-color, #1A5F7A);
-  background: var(--theme-color, #1A5F7A);
-  color: white;
+/* 编辑器容器 */
+.editor-container {
+  flex: 1;
+  position: relative;
+  background: #282c34;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
 }
 
 /* 主内容区 */
@@ -87,12 +106,15 @@ body {
   gap: 24px;
 }
 
-.editor-section,
-.preview-section {
+/* 编辑器区块 */
+.editor-section {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 /* 编辑器容器 */
@@ -100,8 +122,6 @@ body {
   flex: 1;
   position: relative;
   background: #282c34;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -109,34 +129,135 @@ body {
   color: #5c6370;
 }
 
-/* 预览内容中的图片处理 */
-.preview-content img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 20px auto;
-  border-radius: 8px;
-  background: #f5f5f5;
-  min-height: 100px;
+/* 预览区块 */
+.preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-.preview-content img[src=""],
-.preview-content img:not([src]),
-.preview-content img[src*="via.placeholder"] {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 200px;
+/* 预览容器 */
+.preview-container {
+  flex: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
+  background: white;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  padding: 24px;
+}
+
+/* 自定义主题选择器 */
+.theme-selector-wrapper {
   position: relative;
 }
 
-.preview-content img::before {
-  content: "📷 图片";
+.theme-selector-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
+}
+
+.theme-selector-trigger:hover {
+  border-color: #1A5F7A;
+  background-color: #f8f9fa;
+}
+
+.theme-selector-trigger:focus {
+  outline: none;
+  border-color: #1A5F7A;
+  box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
+}
+
+.theme-color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.theme-name {
+  flex: 1;
+  text-align: left;
+}
+
+.dropdown-arrow {
+  color: #999;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.theme-dropdown {
   position: absolute;
-  color: white;
-  font-size: 16px;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  padding: 8px;
+  margin: 0;
+  z-index: 1000;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
   font-weight: 500;
+  color: #333;
+}
+
+.theme-option:hover {
+  background-color: #f8f9fa;
+}
+
+.theme-option.selected {
+  background-color: #f0f7f9;
+  color: #1A5F7A;
+}
+
+.check-icon {
+  margin-left: auto;
+  color: #1A5F7A;
 }
 
 .editor-controls {
@@ -158,25 +279,33 @@ body {
   transition: all 0.2s ease;
 }
 
-.control-button:hover {
+/* 底部按钮统一样式 */
+.editor-footer .control-button-secondary,
+.preview-footer .download-button,
+.preview-footer .copy-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.editor-footer .control-button-secondary {
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: #666;
+}
+
+.editor-footer .control-button-secondary:hover {
   border-color: #1A5F7A;
   color: #1A5F7A;
   background: #f8f9fa;
 }
 
-/* 预览容器 */
-.preview-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  padding: 32px;
-}
-
+/* 手机框 */
 .phone-frame {
   width: 375px;
   height: 100%;
@@ -228,60 +357,42 @@ body {
   background: #bbb;
 }
 
-/* 底部操作栏 */
-.footer {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 20px 32px;
+/* 预览底部按钮 */
+.preview-footer .download-button {
   background: white;
-  border-top: 1px solid #e0e0e0;
-}
-
-.copy-button,
-.download-button {
+  color: #666;
+  border: 2px solid #e0e0e0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 32px;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: 6px;
 }
 
-.copy-button {
+.preview-footer .download-button:hover {
+  border-color: #1A5F7A;
+  color: #1A5F7A;
+}
+
+.preview-footer .copy-button {
   background: linear-gradient(135deg, #1A5F7A 0%, #2d8fba 100%);
   color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.copy-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(26, 95, 122, 0.2);
+.preview-footer .copy-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 95, 122, 0.2);
 }
 
-.copy-button.copied {
+.preview-footer .copy-button.copied {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
 }
 
 .copy-button .icon,
 .download-button .icon {
-  font-size: 18px;
-}
-
-.download-button {
-  background: white;
-  color: #666;
-  border: 2px solid #e0e0e0;
-}
-
-.download-button:hover {
-  border-color: #1A5F7A;
-  color: #1A5F7A;
-  transform: translateY(-2px);
+  font-size: 16px;
 }
 
 /* 通知 */
@@ -345,18 +456,27 @@ body {
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding: 16px;
   }
 
-  .theme-selector {
+  .header-actions {
     width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: center;
   }
 
-  .theme-button {
+  .control-button-secondary,
+  .theme-selector {
     flex: 1;
-    padding: 10px;
+    min-width: 80px;
+  }
+
+  .copy-button,
+  .download-button {
+    flex: 1;
+    justify-content: center;
   }
 
   .main {
@@ -367,16 +487,5 @@ body {
   .phone-frame {
     width: 100%;
     max-width: 375px;
-  }
-
-  .footer {
-    flex-direction: column;
-    padding: 16px;
-  }
-
-  .copy-button,
-  .download-button {
-    width: 100%;
-    justify-content: center;
   }
 }

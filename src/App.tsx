@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SimpleEditor from './components/SimpleEditor';
 import Preview from './components/Preview';
 import QuickHints from './components/QuickHints';
+import ThemeSelector from './components/ThemeSelector';
 import { themes, getThemeByName } from './themes';
 import { parseMarkdown, extractPlainText } from './utils/markdown';
 import { generateWeChatHtml } from './utils/juice';
@@ -109,18 +110,7 @@ const App: React.FC = () => {
           <h1>WriteNow</h1>
           <span className="slogan">Write, Format, Publish.</span>
         </div>
-        <div className="theme-selector">
-          {themes.map((theme) => (
-            <button
-              key={theme.name}
-              className={`theme-button ${currentTheme === theme.name ? 'active' : ''}`}
-              onClick={() => handleThemeChange(theme.name as ThemeType)}
-              style={{ '--theme-color': theme.preview } as React.CSSProperties}
-            >
-              {theme.displayName}
-            </button>
-          ))}
-        </div>
+        <ThemeSelector value={currentTheme} onChange={handleThemeChange} />
       </header>
 
       {/* 主内容区 */}
@@ -134,11 +124,11 @@ const App: React.FC = () => {
             />
             <QuickHints visible={showHints} />
           </div>
-          <div className="editor-controls">
-            <button className="control-button" onClick={handleClear}>
+          <div className="editor-footer">
+            <button className="control-button-secondary" onClick={handleClear}>
               清空
             </button>
-            <button className="control-button" onClick={handleLoadSample}>
+            <button className="control-button-secondary" onClick={handleLoadSample}>
               示例文章
             </button>
           </div>
@@ -146,37 +136,37 @@ const App: React.FC = () => {
 
         {/* 预览区 */}
         <section className="preview-section">
-          <Preview
-            html={html}
-            themeName={currentTheme}
-            isTransitioning={isTransitioning}
-          />
+          <div className="preview-container">
+            <Preview
+              html={html}
+              themeName={currentTheme}
+              isTransitioning={isTransitioning}
+            />
+          </div>
+          <div className="preview-footer">
+            <button className="download-button" onClick={handleDownload}>
+              <span className="icon">↓</span>
+              下载 .md
+            </button>
+            <button
+              className={`copy-button ${copied ? 'copied' : ''}`}
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <>
+                  <span className="icon">✓</span>
+                  已复制！
+                </>
+              ) : (
+                <>
+                  <span className="icon">📋</span>
+                  复制到公众号
+                </>
+              )}
+            </button>
+          </div>
         </section>
       </main>
-
-      {/* 底部操作栏 */}
-      <footer className="footer">
-        <button
-          className={`copy-button ${copied ? 'copied' : ''}`}
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <>
-              <span className="icon">✓</span>
-              已复制！
-            </>
-          ) : (
-            <>
-              <span className="icon">📋</span>
-              复制到公众号
-            </>
-          )}
-        </button>
-        <button className="download-button" onClick={handleDownload}>
-          <span className="icon">↓</span>
-          下载 .md
-        </button>
-      </footer>
 
       {/* 粘贴通知 */}
       {pasteNotification && (
