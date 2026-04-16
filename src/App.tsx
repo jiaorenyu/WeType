@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SimpleEditor from './components/SimpleEditor';
 import Preview from './components/Preview';
 import QuickHints from './components/QuickHints';
+import ThemeSelector from './components/ThemeSelector';
 import { themes, getThemeByName } from './themes';
 import { parseMarkdown, extractPlainText } from './utils/markdown';
 import { generateWeChatHtml } from './utils/juice';
@@ -109,17 +110,7 @@ const App: React.FC = () => {
           <h1>WriteNow</h1>
           <span className="slogan">Write, Format, Publish.</span>
         </div>
-        <select
-          className="theme-selector"
-          value={currentTheme}
-          onChange={(e) => handleThemeChange(e.target.value as ThemeType)}
-        >
-          {themes.map((theme) => (
-            <option key={theme.name} value={theme.name}>
-              {theme.displayName}
-            </option>
-          ))}
-        </select>
+        <ThemeSelector value={currentTheme} onChange={handleThemeChange} />
       </header>
 
       {/* 主内容区 */}
