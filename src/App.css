@@ -27,7 +27,6 @@ body {
   padding: 16px 32px;
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .logo {
@@ -50,10 +49,107 @@ body {
   letter-spacing: 0.5px;
 }
 
-.header-actions {
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-left,
+.toolbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* 编辑器底部 */
+.editor-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 预览底部 */
+.preview-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 编辑器容器 */
+.editor-container {
+  flex: 1;
+  position: relative;
+  background: #282c34;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+/* 主内容区 */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: 24px;
+  gap: 24px;
+}
+
+/* 编辑器区块 */
+.editor-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* 编辑器容器 */
+.editor-container {
+  flex: 1;
+  position: relative;
+  background: #282c34;
+  overflow: hidden;
+}
+
+.editor-container textarea::placeholder {
+  color: #5c6370;
+}
+
+/* 预览区块 */
+.preview-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* 预览容器 */
+.preview-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: white;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  padding: 24px;
 }
 
 /* 下拉选择器 */
@@ -81,68 +177,6 @@ body {
   box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
 }
 
-/* 主内容区 */
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  padding: 24px;
-  gap: 24px;
-}
-
-.editor-section,
-.preview-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  align-items: stretch;
-}
-
-/* 编辑器容器 */
-.editor-container {
-  flex: 1;
-  position: relative;
-  background: #282c34;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
-
-.editor-container textarea::placeholder {
-  color: #5c6370;
-}
-
-/* 预览内容中的图片处理 */
-.preview-content img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 20px auto;
-  border-radius: 8px;
-  background: #f5f5f5;
-  min-height: 100px;
-}
-
-.preview-content img[src=""],
-.preview-content img:not([src]),
-.preview-content img[src*="via.placeholder"] {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.preview-content img::before {
-  content: "📷 图片";
-  position: absolute;
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-}
-
 .editor-controls {
   display: flex;
   gap: 12px;
@@ -162,25 +196,33 @@ body {
   transition: all 0.2s ease;
 }
 
-.control-button:hover {
+/* 底部按钮统一样式 */
+.editor-footer .control-button-secondary,
+.preview-footer .download-button,
+.preview-footer .copy-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.editor-footer .control-button-secondary {
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: #666;
+}
+
+.editor-footer .control-button-secondary:hover {
   border-color: #1A5F7A;
   color: #1A5F7A;
   background: #f8f9fa;
 }
 
-/* 预览容器 */
-.preview-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  padding: 32px;
-}
-
+/* 手机框 */
 .phone-frame {
   width: 375px;
   height: 100%;
@@ -232,49 +274,42 @@ body {
   background: #bbb;
 }
 
-/* 按钮样式（头部） */
-.copy-button,
-.download-button {
+/* 预览底部按钮 */
+.preview-footer .download-button {
+  background: white;
+  color: #666;
+  border: 2px solid #e0e0e0;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.copy-button {
+.preview-footer .download-button:hover {
+  border-color: #1A5F7A;
+  color: #1A5F7A;
+}
+
+.preview-footer .copy-button {
   background: linear-gradient(135deg, #1A5F7A 0%, #2d8fba 100%);
   color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.copy-button:hover {
+.preview-footer .copy-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(26, 95, 122, 0.2);
 }
 
-.copy-button.copied {
+.preview-footer .copy-button.copied {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
 }
 
 .copy-button .icon,
 .download-button .icon {
   font-size: 16px;
-}
-
-.download-button {
-  background: white;
-  color: #666;
-  border: 2px solid #e0e0e0;
-}
-
-.download-button:hover {
-  border-color: #1A5F7A;
-  color: #1A5F7A;
 }
 
 /* 通知 */
@@ -338,18 +373,27 @@ body {
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     padding: 16px;
   }
 
   .header-actions {
     width: 100%;
     flex-wrap: wrap;
+    gap: 8px;
     justify-content: center;
   }
 
+  .control-button-secondary,
   .theme-selector {
-    width: 100%;
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .copy-button,
+  .download-button {
+    flex: 1;
+    justify-content: center;
   }
 
   .main {
@@ -360,11 +404,5 @@ body {
   .phone-frame {
     width: 100%;
     max-width: 375px;
-  }
-
-  .copy-button,
-  .download-button {
-    flex: 1;
-    justify-content: center;
   }
 }
