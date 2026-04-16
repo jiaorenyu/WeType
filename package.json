@@ -19,6 +19,7 @@
     "highlight.js": "^11.9.0",
     "juice": "^10.0.0",
     "markdown-it": "^14.1.0",
+    "markdown-it-task-lists": "^2.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

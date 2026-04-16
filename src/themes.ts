@@ -137,6 +137,40 @@ export const geekTheme: ThemeConfig = {
     .article-content tr:nth-child(even) {
       background: #f8f9fa;
     }
+
+    /* 任务列表样式 */
+    .article-content ul.task-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .article-content .task-list-item {
+      list-style: none;
+      margin: 8px 0;
+      padding-left: 28px;
+      position: relative;
+    }
+
+    .article-content .task-list-item input[type="checkbox"] {
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #1A5F7A;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked {
+      background: #1A5F7A;
+      border-color: #1A5F7A;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked + span {
+      text-decoration: line-through;
+      color: #999;
+    }
   `
 };
 
@@ -293,6 +327,40 @@ export const literaryTheme: ThemeConfig = {
     .article-content tr:hover {
       background: #faf8f5;
     }
+
+    /* 任务列表样式 */
+    .article-content ul.task-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .article-content .task-list-item {
+      list-style: none;
+      margin: 10px 0;
+      padding-left: 32px;
+      position: relative;
+    }
+
+    .article-content .task-list-item input[type="checkbox"] {
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #8B4513;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked {
+      background: #8B4513;
+      border-color: #8B4513;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked + span {
+      text-decoration: line-through;
+      color: #999;
+    }
   `
 };
 
@@ -425,6 +493,40 @@ export const minimalTheme: ThemeConfig = {
 
     .article-content tr:hover {
       background: #f8f9fa;
+    }
+
+    /* 任务列表样式 */
+    .article-content ul.task-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .article-content .task-list-item {
+      list-style: none;
+      margin: 6px 0;
+      padding-left: 26px;
+      position: relative;
+    }
+
+    .article-content .task-list-item input[type="checkbox"] {
+      position: absolute;
+      left: 0;
+      top: 3px;
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #2c3e50;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked {
+      background: #2c3e50;
+      border-color: #2c3e50;
+    }
+
+    .article-content .task-list-item input[type="checkbox"]:checked + span {
+      text-decoration: line-through;
+      color: #999;
     }
   `
 };

@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
+import taskLists from 'markdown-it-task-lists';
 
 // 初始化 markdown-it
 const md: any = new MarkdownIt({
@@ -16,6 +17,9 @@ const md: any = new MarkdownIt({
     return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
   }
 });
+
+// 添加任务列表支持
+md.use(taskLists, { enabled: true, label: true, lineNumber: true });
 
 // 解析 Markdown 为 HTML
 export const parseMarkdown = (markdown: string): string => {
