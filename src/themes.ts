@@ -112,6 +112,19 @@ export const geekTheme: ThemeConfig = {
       margin: 20px auto;
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background: #f5f5f5;
+    }
+
+    .article-content img[src=""],
+    .article-content img:not([src]) {
+      min-height: 200px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
     }
 
     .article-content table {

@@ -44,6 +44,10 @@ export const generateWeChatHtml = (html: string, theme: ThemeConfig): string => 
     .replace(/display:\s*grid[^;]*;?/g, 'display: block;')
     // 移除 transform 属性
     .replace(/transform:[^;]*;?/g, '')
+    // 确保图片样式正确
+    .replace(/<img/g, '<img style="max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 8px;"')
+    // 移除图片的 onerror 属性（微信不支持）
+    .replace(/ onerror="[^"]*"/g, '')
     // 压缩样式属性中的空格
     .replace(/style="([^"]*)"/g, (_match: string, styles: string) => {
       const compressed = styles.replace(/\s+/g, ' ').trim();

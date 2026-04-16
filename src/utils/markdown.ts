@@ -24,7 +24,13 @@ md.use(taskLists, { enabled: true, label: true, lineNumber: true });
 // 解析 Markdown 为 HTML
 export const parseMarkdown = (markdown: string): string => {
   if (!markdown) return '';
-  return md.render(markdown);
+  
+  let html = md.render(markdown);
+  
+  // 为图片添加错误处理和样式
+  html = html.replace(/<img/g, '<img onerror="this.style.background=\'linear-gradient(135deg, #667eea 0%, #764ba2 100%)\'; this.style.minHeight=\'200px\'; this.alt=this.alt||\'图片加载失败\'"');
+  
+  return html;
 };
 
 // 检测代码块语言
