@@ -109,17 +109,38 @@ const App: React.FC = () => {
           <h1>WriteNow</h1>
           <span className="slogan">Write, Format, Publish.</span>
         </div>
-        <div className="theme-selector">
-          {themes.map((theme) => (
-            <button
-              key={theme.name}
-              className={`theme-button ${currentTheme === theme.name ? 'active' : ''}`}
-              onClick={() => handleThemeChange(theme.name as ThemeType)}
-              style={{ '--theme-color': theme.preview } as React.CSSProperties}
-            >
-              {theme.displayName}
-            </button>
-          ))}
+        <div className="header-actions">
+          <select
+            className="theme-selector"
+            value={currentTheme}
+            onChange={(e) => handleThemeChange(e.target.value as ThemeType)}
+          >
+            {themes.map((theme) => (
+              <option key={theme.name} value={theme.name}>
+                {theme.displayName}
+              </option>
+            ))}
+          </select>
+          <button
+            className={`copy-button ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {copied ? (
+              <>
+                <span className="icon">✓</span>
+                已复制！
+              </>
+            ) : (
+              <>
+                <span className="icon">📋</span>
+                复制到公众号
+              </>
+            )}
+          </button>
+          <button className="download-button" onClick={handleDownload}>
+            <span className="icon">↓</span>
+            下载 .md
+          </button>
         </div>
       </header>
 
@@ -153,30 +174,6 @@ const App: React.FC = () => {
           />
         </section>
       </main>
-
-      {/* 底部操作栏 */}
-      <footer className="footer">
-        <button
-          className={`copy-button ${copied ? 'copied' : ''}`}
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <>
-              <span className="icon">✓</span>
-              已复制！
-            </>
-          ) : (
-            <>
-              <span className="icon">📋</span>
-              复制到公众号
-            </>
-          )}
-        </button>
-        <button className="download-button" onClick={handleDownload}>
-          <span className="icon">↓</span>
-          下载 .md
-        </button>
-      </footer>
 
       {/* 粘贴通知 */}
       {pasteNotification && (

@@ -50,13 +50,15 @@ body {
   letter-spacing: 0.5px;
 }
 
-.theme-selector {
+.header-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
 }
 
-.theme-button {
-  padding: 8px 20px;
+/* 下拉选择器 */
+.theme-selector {
+  padding: 8px 16px;
   border: 2px solid #e0e0e0;
   background: white;
   color: #666;
@@ -65,17 +67,18 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none;
+  min-width: 120px;
 }
 
-.theme-button:hover {
-  border-color: var(--theme-color, #1A5F7A);
-  color: var(--theme-color, #1A5F7A);
+.theme-selector:hover {
+  border-color: #1A5F7A;
+  color: #1A5F7A;
 }
 
-.theme-button.active {
-  border-color: var(--theme-color, #1A5F7A);
-  background: var(--theme-color, #1A5F7A);
-  color: white;
+.theme-selector:focus {
+  border-color: #1A5F7A;
+  box-shadow: 0 0 0 3px rgba(26, 95, 122, 0.1);
 }
 
 /* 主内容区 */
@@ -93,6 +96,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  align-items: stretch;
 }
 
 /* 编辑器容器 */
@@ -169,7 +173,7 @@ body {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
@@ -228,29 +232,19 @@ body {
   background: #bbb;
 }
 
-/* 底部操作栏 */
-.footer {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 20px 32px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
-}
-
+/* 按钮样式（头部） */
 .copy-button,
 .download-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 32px;
+  gap: 6px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 12px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .copy-button {
@@ -259,8 +253,8 @@ body {
 }
 
 .copy-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(26, 95, 122, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 95, 122, 0.2);
 }
 
 .copy-button.copied {
@@ -269,7 +263,7 @@ body {
 
 .copy-button .icon,
 .download-button .icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .download-button {
@@ -281,7 +275,6 @@ body {
 .download-button:hover {
   border-color: #1A5F7A;
   color: #1A5F7A;
-  transform: translateY(-2px);
 }
 
 /* 通知 */
@@ -349,14 +342,14 @@ body {
     padding: 16px;
   }
 
-  .theme-selector {
+  .header-actions {
     width: 100%;
+    flex-wrap: wrap;
     justify-content: center;
   }
 
-  .theme-button {
-    flex: 1;
-    padding: 10px;
+  .theme-selector {
+    width: 100%;
   }
 
   .main {
@@ -369,14 +362,9 @@ body {
     max-width: 375px;
   }
 
-  .footer {
-    flex-direction: column;
-    padding: 16px;
-  }
-
   .copy-button,
   .download-button {
-    width: 100%;
+    flex: 1;
     justify-content: center;
   }
 }
