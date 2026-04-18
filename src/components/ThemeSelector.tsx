@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { themes, ThemeType } from '../themes';
+import { themes } from '../themes';
+import { ThemeType } from '../types';
 
 interface ThemeSelectorProps {
   value: ThemeType;
@@ -68,7 +69,7 @@ const ThemeSelector: React.FC<ThemeSelectorProps> = ({ value, onChange }) => {
             <li
               key={theme.name}
               className={`theme-option ${value === theme.name ? 'selected' : ''}`}
-              onClick={() => handleSelect(theme.name)}
+              onClick={() => handleSelect(theme.name as ThemeType)}
               role="option"
               aria-selected={value === theme.name}
             >

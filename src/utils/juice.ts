@@ -29,6 +29,15 @@ export const inlineStyles = (html: string, theme: ThemeConfig): string => {
   }
 };
 
+// 处理列表项中的冒号换行问题
+const processColonInListItems = (html: string): string => {
+  // 将整个列表项内容包裹在不换行的容器中
+  return html.replace(
+    /<li([^>]*)>(.*?)<\/li>/gs,
+    '<li$1><span style="white-space:pre-wrap;display:inline;">$2</span></li>'
+  );
+};
+
 // 生成微信兼容的 HTML
 export const generateWeChatHtml = (html: string, theme: ThemeConfig): string => {
   const inlined = inlineStyles(html, theme);
@@ -53,6 +62,9 @@ export const generateWeChatHtml = (html: string, theme: ThemeConfig): string => 
       const compressed = styles.replace(/\s+/g, ' ').trim();
       return `style="${compressed}"`;
     });
+
+  // 处理列表项中的冒号换行问题
+  wechatHtml = processColonInListItems(wechatHtml);
 
   return wechatHtml;
 };

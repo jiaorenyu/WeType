@@ -3,7 +3,7 @@ import SimpleEditor from './components/SimpleEditor';
 import Preview from './components/Preview';
 import QuickHints from './components/QuickHints';
 import ThemeSelector from './components/ThemeSelector';
-import { themes, getThemeByName } from './themes';
+import { getThemeByName } from './themes';
 import { parseMarkdown, extractPlainText } from './utils/markdown';
 import { generateWeChatHtml } from './utils/juice';
 import { copyToClipboard, isMarkdown } from './utils/clipboard';
