@@ -40,4 +40,4 @@ npm run preview # 预览生产版本
 
 ## 许可证
 
-MIT
+Apache 2.0
