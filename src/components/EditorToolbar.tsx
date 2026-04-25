@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useInstance } from '@milkdown/react';
 import { editorViewCtx, schemaCtx } from '@milkdown/kit/core';
-import { toggleMark, wrapIn } from '@milkdown/prose/commands';
+import { toggleMark, wrapIn, lift } from '@milkdown/prose/commands';
 
 type ToolbarButton = {
   label: string;
@@ -23,10 +23,9 @@ const buttonGroups: ToolbarButton[][] = [
     { label: '</>', title: '行内代码', action: 'code' },
   ],
   [
-    { label: '"', title: '引用', action: 'blockquote' },
-    { label: '•', title: '无序列表', action: 'bulletList' },
+    { label: '≡', title: '无序列表', action: 'bulletList' },
     { label: '1.', title: '有序列表', action: 'orderedList' },
-    { label: '—', title: '分割线', action: 'hr' },
+    { label: '▬', title: '分割线', action: 'hr' },
   ],
   [
     { label: '🔗', title: '链接', action: 'link' },
@@ -34,6 +33,50 @@ const buttonGroups: ToolbarButton[][] = [
     { label: '```', title: '代码块', action: 'codeBlock' },
   ],
 ];
+
+/** 列表切换：不在列表中 → 包裹；在相同列表中 → 提升（取消列表）; 在不同列表中 → 替换类型 */
+function toggleList(
+  state: any,
+  dispatch: ((tr: any) => void) | undefined,
+  schema: any,
+  targetType: any,
+): boolean {
+  const { $from } = state.selection;
+  const tr = state.tr;
+
+  // 查找父级列表节点（bullet_list 或 ordered_list）
+  let listInfo: { depth: number; node: any } | null = null;
+  for (let d = $from.depth; d > 0; d--) {
+    const node = $from.node(d);
+    if (
+      node.type === schema.nodes.bullet_list ||
+      node.type === schema.nodes.ordered_list
+    ) {
+      listInfo = { depth: d, node };
+      break;
+    }
+  }
+
+  // 情况 1：不在任何列表中 → 包裹
+  if (!listInfo) {
+    return wrapIn(targetType)(state, dispatch);
+  }
+
+  // 情况 2：在相同类型的列表中 → 提升（取消列表）
+  if (listInfo.node.type === targetType) {
+    return lift(state, dispatch);
+  }
+
+  // 情况 3：在不同类型的列表中 → 替换列表节点类型（只传目标类型支持的 attrs）
+  const sharedAttrs: Record<string, unknown> = {};
+  if (listInfo.node.attrs.spread !== undefined) {
+    sharedAttrs.spread = listInfo.node.attrs.spread;
+  }
+  const listPos = $from.before(listInfo.depth);
+  tr.setNodeMarkup(listPos, targetType, sharedAttrs);
+  if (dispatch) dispatch(tr);
+  return true;
+}
 
 const EditorToolbar: React.FC = () => {
   const [loading, getEditor] = useInstance();
@@ -67,8 +110,8 @@ const EditorToolbar: React.FC = () => {
           return true;
         }
         case 'italic': {
-          if (schema.marks.em) {
-            toggleMark(schema.marks.em)(state, dispatch);
+          if (schema.marks.emphasis) {
+            toggleMark(schema.marks.emphasis)(state, dispatch);
           }
           return true;
         }
@@ -79,9 +122,8 @@ const EditorToolbar: React.FC = () => {
           return true;
         }
         case 'code': {
-          const codeMark = schema.marks.code_inline || schema.marks.inline_code;
-          if (codeMark) {
-            toggleMark(codeMark)(state, dispatch);
+          if (schema.marks.inlineCode) {
+            toggleMark(schema.marks.inlineCode)(state, dispatch);
           }
           return true;
         }
@@ -91,30 +133,31 @@ const EditorToolbar: React.FC = () => {
           }
           return true;
         }
-        case 'bulletList': {
-          if (schema.nodes.bullet_list) {
-            wrapIn(schema.nodes.bullet_list)(state, dispatch);
-          }
-          return true;
-        }
+        case 'bulletList':
         case 'orderedList': {
-          if (schema.nodes.ordered_list) {
-            wrapIn(schema.nodes.ordered_list)(state, dispatch);
+          const targetType = btn.action === 'bulletList'
+            ? schema.nodes.bullet_list
+            : schema.nodes.ordered_list;
+          if (targetType) {
+            toggleList(state, dispatch, schema, targetType);
           }
           return true;
         }
         case 'hr': {
-          if (schema.nodes.horizontal_rule) {
-            dispatch(tr.replaceSelectionWith(schema.nodes.horizontal_rule.create()).scrollIntoView());
+          if (schema.nodes.hr) {
+            dispatch(tr.replaceSelectionWith(schema.nodes.hr.create()).scrollIntoView());
           }
           return true;
         }
         case 'codeBlock': {
           if (schema.nodes.code_block) {
-            dispatch(tr
-              .setBlockType(sel.from, sel.to, schema.nodes.code_block)
-              .scrollIntoView()
-            );
+            const selectedText = state.doc.textBetween(sel.from, sel.to);
+            const node = selectedText
+              ? schema.nodes.code_block.create({ language: '' }, schema.text(selectedText))
+              : schema.nodes.code_block.createAndFill();
+            if (node) {
+              dispatch(tr.replaceRangeWith(sel.from, sel.to, node).scrollIntoView());
+            }
           }
           return true;
         }
