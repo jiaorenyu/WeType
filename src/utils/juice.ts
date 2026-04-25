@@ -45,7 +45,10 @@ export const generateWeChatHtml = (html: string, theme: ThemeConfig): string => 
   // 微信兼容性处理
   let wechatHtml = inlined
     // 将 div 转换为 section（微信更友好）
-    .replace(/<div class="article-content">/g, '<section class="article-content">')
+    // 注意: juice 内联化后会给 div 添加 style 属性，所以要用 [^>]* 匹配
+    .replace(/<div class="article-content"[^>]*>/g, (match) => {
+      return match.replace(/^<div/, '<section');
+    })
     .replace(/<\/div>/g, '</section>')
     // 移除不支持的 flex 属性
     .replace(/display:\s*flex[^;]*;?/g, 'display: block;')

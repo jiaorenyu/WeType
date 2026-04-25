@@ -7,6 +7,7 @@ import { listener, listenerCtx, ListenerManager } from '@milkdown/kit/plugin/lis
 import { history } from '@milkdown/kit/plugin/history';
 import { Milkdown, useEditor } from '@milkdown/react';
 import { isMarkdown } from '../utils/clipboard';
+import { normalizeHeadings } from '../utils/markdown';
 
 // 主题 CSS 选择器适配
 function adaptThemeCss(themeCss: string): string {
@@ -39,7 +40,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
         // 使用 React 管理的根元素，而非 document.body
         if (rootEl) ctx.set(rootCtx, rootEl);
         // 设置初始内容
-        ctx.set(defaultValueCtx, content);
+        ctx.set(defaultValueCtx, normalizeHeadings(content));
 
         // 监听 Markdown 变更
         ctx.set(listenerCtx, new ListenerManager()
@@ -56,7 +57,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
             const text = event.clipboardData?.getData('text/plain');
             if (text && isMarkdown(text)) {
               const p = ctx.get(parserCtx);
-              const doc = p(text);
+              const doc = p(normalizeHeadings(text));
               if (doc) {
                 const { from, to } = view.state.selection;
                 const tr = view.state.tr.replaceWith(from, to, doc.content);
@@ -98,7 +99,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
         editor.action((ctx) => {
           const view = ctx.get(editorViewCtx);
           const p = ctx.get(parserCtx);
-          const doc = p(content);
+          const doc = p(normalizeHeadings(content));
           if (!doc) return;
 
           const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Editor } from '@milkdown/kit/core';
 import { parserCtx, editorViewCtx } from '@milkdown/kit/core';
@@ -6,8 +6,9 @@ import { MilkdownProvider } from '@milkdown/react';
 import MilkdownEditor from '../components/MilkdownEditor';
 import EditorToolbar from '../components/EditorToolbar';
 import ThemeSelector from '../components/ThemeSelector';
+import PhonePreview from '../components/PhonePreview';
 import { getThemeByName } from '../themes';
-import { parseMarkdown, extractPlainText } from '../utils/markdown';
+import { parseMarkdown, extractPlainText, normalizeHeadings } from '../utils/markdown';
 import { generateWeChatHtml } from '../utils/juice';
 import { copyToClipboard, isMarkdown } from '../utils/clipboard';
 import { sampleMarkdown } from '../sampleContent';
@@ -19,7 +20,7 @@ function setEditorContent(editor: Editor, md: string): void {
   editor.action((ctx) => {
     const view = ctx.get(editorViewCtx);
     const p = ctx.get(parserCtx);
-    const doc = p(md);
+    const doc = p(normalizeHeadings(md));
     if (!doc) return;
     const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content);
     view.dispatch(tr);
@@ -33,6 +34,11 @@ const EditorContent: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [pasteNotification, setPasteNotification] = useState(false);
   const editorRef = useRef<Editor | null>(null);
+  const [previewEnabled, setPreviewEnabled] = useState(false);
+
+  const previewHtml = useMemo(() => {
+    return previewEnabled ? parseMarkdown(content) : '';
+  }, [content, previewEnabled]);
 
   // 主题切换
   const handleThemeChange = (themeName: ThemeType) => {
@@ -155,16 +161,23 @@ const EditorContent: React.FC = () => {
         </div>
       </header>
 
-      {/* 编辑器区域 - 单栏布局 */}
+      {/* 编辑器区域 - 单栏/分栏布局 */}
       <main className="editor-main">
         <EditorToolbar />
-        <div className="editor-content-area">
-          <MilkdownEditor
-            content={content}
-            onChange={setContent}
-            themeCss={getThemeByName(currentTheme).css}
-            onReady={handleEditorReady}
-          />
+        <div className={`editor-content-area ${previewEnabled ? 'split-layout' : ''}`}>
+          <div className={previewEnabled ? 'editor-left-panel' : 'editor-full-panel'}>
+            <MilkdownEditor
+              content={content}
+              onChange={setContent}
+              themeCss={getThemeByName(currentTheme).css}
+              onReady={handleEditorReady}
+            />
+          </div>
+          {previewEnabled && (
+            <div className="editor-right-panel">
+              <PhonePreview html={previewHtml} theme={currentTheme} />
+            </div>
+          )}
         </div>
         <div className="editor-action-bar">
           <button className="action-btn secondary" onClick={handleClear}>
@@ -174,6 +187,13 @@ const EditorContent: React.FC = () => {
             示例文章
           </button>
           <div className="action-bar-spacer" />
+          <button
+            className={`action-btn secondary toggle-preview ${previewEnabled ? 'active' : ''}`}
+            onClick={() => setPreviewEnabled(v => !v)}
+          >
+            <span className="icon">{previewEnabled ? '✕' : '📱'}</span>
+            {previewEnabled ? '关闭预览' : '手机预览'}
+          </button>
           <button className="action-btn secondary" onClick={handleDownload}>
             <span className="icon">↓</span>
             下载 .md

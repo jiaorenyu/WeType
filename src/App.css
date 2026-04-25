@@ -352,7 +352,106 @@ body {
   }
 }
 
+/* ===== 手机预览布局 ===== */
+.editor-content-area.split-layout {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.editor-left-panel {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.editor-full-panel {
+  height: 100%;
+}
+
+.editor-right-panel {
+  flex-shrink: 0;
+  width: 420px;
+  overflow-y: auto;
+  background: #f0f0f0;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.phone-frame {
+  width: 375px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 36px;
+  border: 2px solid #ccc;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+}
+
+.phone-screen {
+  padding: 28px 20px;
+}
+
+.phone-home-indicator {
+  width: 134px;
+  height: 5px;
+  background: #ddd;
+  border-radius: 3px;
+  margin: 0 auto 12px auto;
+}
+
+/* 预览切换按钮激活态 */
+.action-btn.toggle-preview.active {
+  background: #1A5F7A;
+  color: white;
+  border-color: #1A5F7A;
+}
+
 /* 响应式 */
+@media (max-width: 900px) {
+  .editor-content-area.split-layout {
+    flex-direction: column;
+  }
+
+  .editor-right-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    padding: 16px;
+    max-height: 50vh;
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: 375px;
+    border-radius: 24px;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-right-panel {
+    padding: 8px;
+    max-height: 40vh;
+  }
+
+  .phone-frame {
+    border-radius: 16px;
+    border-width: 1px;
+  }
+
+  .phone-screen {
+    padding: 16px 12px;
+  }
+}
+
+/* 原有响应式保留 */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
