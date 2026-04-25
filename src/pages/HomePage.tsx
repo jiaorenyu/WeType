@@ -24,11 +24,15 @@ const HomePage: React.FC = () => {
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:locale" content="zh_CN" />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${SITE_NAME} — 极简 Markdown 转公众号排版工具`} />
         <meta name="twitter:description" content={DEFAULT_DESC} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
 
         {/* 结构化数据 */}
         <script type="application/ld+json">

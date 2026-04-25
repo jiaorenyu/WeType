@@ -115,6 +115,25 @@ async function prerender() {
     const outPath = path.join(distDir, 'index.html');
     fs.writeFileSync(outPath, html);
     console.log(`[prerender] ✅ Prerendered homepage saved (${(html.length / 1024).toFixed(1)} KB)`);
+    await page.close();
+
+    // ---------- Generate og:image PNG ----------
+    try {
+      const ogPage = await browser.newPage();
+      await ogPage.setViewport({ width: 1200, height: 630 });
+
+      const ogSvgPath = path.join(distDir, 'og-image.svg');
+      if (fs.existsSync(ogSvgPath)) {
+        await ogPage.goto(`http://localhost:${PORT}/og-image.svg`, { waitUntil: 'networkidle0' });
+        await new Promise((r) => setTimeout(r, 300));
+        await ogPage.screenshot({ path: path.join(distDir, 'og-image.png'), type: 'png' });
+        const pngSize = fs.statSync(path.join(distDir, 'og-image.png')).size;
+        console.log(`[prerender] ✅ OG image saved (${(pngSize / 1024).toFixed(1)} KB)`);
+      }
+      await ogPage.close();
+    } catch (err) {
+      console.warn('[prerender] OG image generation skipped:', err.message);
+    }
   } finally {
     await browser.close();
     server.close();
