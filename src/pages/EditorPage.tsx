@@ -1,54 +1,63 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SimpleEditor from '../components/SimpleEditor';
-import Preview from '../components/Preview';
-import QuickHints from '../components/QuickHints';
+import { Editor } from '@milkdown/kit/core';
+import { parserCtx, editorViewCtx } from '@milkdown/kit/core';
+import { MilkdownProvider } from '@milkdown/react';
+import MilkdownEditor from '../components/MilkdownEditor';
+import EditorToolbar from '../components/EditorToolbar';
 import ThemeSelector from '../components/ThemeSelector';
+import PhonePreview from '../components/PhonePreview';
 import { getThemeByName } from '../themes';
-import { parseMarkdown, extractPlainText } from '../utils/markdown';
+import { parseMarkdown, extractPlainText, normalizeHeadings } from '../utils/markdown';
 import { generateWeChatHtml } from '../utils/juice';
 import { copyToClipboard, isMarkdown } from '../utils/clipboard';
 import { sampleMarkdown } from '../sampleContent';
 import { ThemeType } from '../types';
 import '../App.css';
 
-const EditorPage: React.FC = () => {
+/** 通过 editor.action 将 Markdown 内容设置到编辑器中 */
+function setEditorContent(editor: Editor, md: string): void {
+  editor.action((ctx) => {
+    const view = ctx.get(editorViewCtx);
+    const p = ctx.get(parserCtx);
+    const doc = p(normalizeHeadings(md));
+    if (!doc) return;
+    const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content);
+    view.dispatch(tr);
+  });
+}
+
+const EditorContent: React.FC = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState(sampleMarkdown);
-  const [html, setHtml] = useState('');
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('geek');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showHints, setShowHints] = useState(true);
   const [copied, setCopied] = useState(false);
   const [pasteNotification, setPasteNotification] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<Editor | null>(null);
+  const [previewEnabled, setPreviewEnabled] = useState(false);
 
-  // 解析 Markdown
-  useEffect(() => {
-    const parsedHtml = parseMarkdown(content);
-    setHtml(parsedHtml);
-  }, [content]);
-
-  // 显示/隐藏语法提示
-  useEffect(() => {
-    setShowHints(content.trim().length === 0);
-  }, [content]);
+  const previewHtml = useMemo(() => {
+    return previewEnabled ? parseMarkdown(content) : '';
+  }, [content, previewEnabled]);
 
   // 主题切换
   const handleThemeChange = (themeName: ThemeType) => {
     if (themeName !== currentTheme) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentTheme(themeName);
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 100);
-      }, 200);
+      setCurrentTheme(themeName);
     }
   };
 
+  // 编辑器就绪 — 保存 editor 实例
+  const handleEditorReady = useCallback((getEditor: () => Editor | undefined) => {
+    const editor = getEditor();
+    if (editor) {
+      editorRef.current = editor;
+    }
+  }, []);
+
   // 复制到公众号
   const handleCopy = async () => {
+    const html = parseMarkdown(content);
     const theme = getThemeByName(currentTheme);
     const wechatHtml = generateWeChatHtml(html, theme);
     const plainText = extractPlainText(html);
@@ -72,26 +81,38 @@ const EditorPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 加载示例文章
-  const handleLoadSample = () => {
+  // 加载示例文章（使用 editor API 直接设置）
+  const handleLoadSample = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      setEditorContent(editor, sampleMarkdown);
+    }
     setContent(sampleMarkdown);
-  };
+  }, []);
 
   // 清空内容
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      setEditorContent(editor, '');
+    }
     setContent('');
-  };
+  }, []);
 
-  // 全局粘贴监听
+  // 全局粘贴监听 — 编辑器未聚焦时检测 Markdown 并加载
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const activeElement = document.activeElement;
-      const isEditorFocused = activeElement?.closest('.editor-wrapper');
+      const isEditorFocused = activeElement?.closest('.milkdown-editor-wrapper');
 
       if (!isEditorFocused && e.clipboardData) {
         const pastedText = e.clipboardData.getData('text');
         if (pastedText && isMarkdown(pastedText)) {
           e.preventDefault();
+          const editor = editorRef.current;
+          if (editor) {
+            setEditorContent(editor, pastedText);
+          }
           setContent(pastedText);
           setPasteNotification(true);
           setTimeout(() => setPasteNotification(false), 2000);
@@ -140,59 +161,60 @@ const EditorPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 主内容区 */}
-      <main className="main">
-        {/* 编辑器 */}
-        <section className="editor-section">
-          <div className="editor-container" ref={editorRef}>
-            <SimpleEditor
-              value={content}
+      {/* 编辑器区域 - 单栏/分栏布局 */}
+      <main className="editor-main">
+        <EditorToolbar />
+        <div className={`editor-content-area ${previewEnabled ? 'split-layout' : ''}`}>
+          <div className={previewEnabled ? 'editor-left-panel' : 'editor-full-panel'}>
+            <MilkdownEditor
+              content={content}
               onChange={setContent}
-            />
-            <QuickHints visible={showHints} />
-          </div>
-          <div className="editor-footer">
-            <button className="control-button-secondary" onClick={handleClear}>
-              清空
-            </button>
-            <button className="control-button-secondary" onClick={handleLoadSample}>
-              示例文章
-            </button>
-          </div>
-        </section>
-
-        {/* 预览区 */}
-        <section className="preview-section">
-          <div className="preview-container">
-            <Preview
-              html={html}
-              themeName={currentTheme}
-              isTransitioning={isTransitioning}
+              themeCss={getThemeByName(currentTheme).css}
+              onReady={handleEditorReady}
             />
           </div>
-          <div className="preview-footer">
-            <button className="download-button" onClick={handleDownload}>
-              <span className="icon">↓</span>
-              下载 .md
-            </button>
-            <button
-              className={`copy-button ${copied ? 'copied' : ''}`}
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <>
-                  <span className="icon">✓</span>
-                  已复制！
-                </>
-              ) : (
-                <>
-                  <span className="icon">📋</span>
-                  复制到公众号
-                </>
-              )}
-            </button>
-          </div>
-        </section>
+          {previewEnabled && (
+            <div className="editor-right-panel">
+              <PhonePreview html={previewHtml} theme={currentTheme} />
+            </div>
+          )}
+        </div>
+        <div className="editor-action-bar">
+          <button className="action-btn secondary" onClick={handleClear}>
+            清空
+          </button>
+          <button className="action-btn secondary" onClick={handleLoadSample}>
+            示例文章
+          </button>
+          <div className="action-bar-spacer" />
+          <button
+            className={`action-btn secondary toggle-preview ${previewEnabled ? 'active' : ''}`}
+            onClick={() => setPreviewEnabled(v => !v)}
+          >
+            <span className="icon">{previewEnabled ? '✕' : '📱'}</span>
+            {previewEnabled ? '关闭预览' : '手机预览'}
+          </button>
+          <button className="action-btn secondary" onClick={handleDownload}>
+            <span className="icon">↓</span>
+            下载 .md
+          </button>
+          <button
+            className={`action-btn primary ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {copied ? (
+              <>
+                <span className="icon">✓</span>
+                已复制！
+              </>
+            ) : (
+              <>
+                <span className="icon">📋</span>
+                复制到公众号
+              </>
+            )}
+          </button>
+        </div>
       </main>
 
       {/* 粘贴通知 */}
@@ -202,6 +224,14 @@ const EditorPage: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const EditorPage: React.FC = () => {
+  return (
+    <MilkdownProvider>
+      <EditorContent />
+    </MilkdownProvider>
   );
 };
 

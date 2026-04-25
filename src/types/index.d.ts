@@ -45,34 +45,3 @@ declare module 'markdown-it-task-lists' {
   export = taskLists;
 }
 
-declare module '@codemirror/view' {
-  import { Extension } from '@codemirror/state';
-
-  export const basicSetup: Extension;
-
-  export class EditorView {
-    static theme(spec: { [selector: string]: any }): Extension;
-    static updateListener: {
-      of(f: (update: any) => void): Extension;
-    };
-    constructor(config: {
-      state: any;
-      parent: HTMLElement;
-    });
-    readonly state: any;
-    readonly dom: HTMLElement;
-    dispatch(transaction: any): void;
-    destroy(): void;
-  }
-}
-
-declare module '@codemirror/state' {
-  export class EditorState {
-    static create(config: {
-      doc: string;
-      extensions: any[];
-    }): EditorState;
-    readonly doc: { toString(): string; length: number };
-    update(config: { changes: { from: number; to: number; insert: string } }): any;
-  }
-}

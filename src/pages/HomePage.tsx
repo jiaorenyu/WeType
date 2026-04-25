@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
             Write, Format, Publish.
           </p>
           <p className="hero-description">
-            打开即用，复制即走。30 秒完成从 Markdown 到精美排版的全部流程。
+            类 Typora 的所见即所得编辑体验，搭配手机实时预览。打开即用，复制即走。30 秒完成从写作到精美排版的全部流程。
           </p>
           <div className="hero-actions">
             <button className="hero-cta" onClick={() => navigate('/editor')}>
@@ -53,17 +53,20 @@ const HomePage: React.FC = () => {
       <section id="features" className="features">
         <div className="features-inner">
           <h2 className="section-title">为什么选择 WriteNow？</h2>
-          <p className="section-subtitle">专注做好一件事：Markdown → 公众号排版</p>
+          <p className="section-subtitle">专注做好一件事：从写作到排版，30 秒完成</p>
           <div className="feature-grid">
             <div className="feature-card">
               <div className="feature-icon-wrapper">
                 <svg className="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10 9 9 9 8 9" />
                 </svg>
               </div>
-              <h3>Markdown 编辑</h3>
-              <p>语法高亮，实时预览。支持标题、加粗、列表、代码块等 95% 常用语法。</p>
+              <h3>所见即所得编辑</h3>
+              <p>类 Typora 的富文本编辑体验，同时兼容原生 Markdown 语法。支持标题、加粗、引用、代码块，边写边渲染。</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon-wrapper">
@@ -89,12 +92,34 @@ const HomePage: React.FC = () => {
             <div className="feature-card">
               <div className="feature-icon-wrapper">
                 <svg className="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  <rect x="5" y="2" width="14" height="20" rx="2" />
+                  <line x1="12" y1="18" x2="12" y2="18" />
                 </svg>
               </div>
               <h3>完全免登录</h3>
               <p>打开即用，无需注册账号。你的内容只保存在本地，隐私安全。</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon-wrapper">
+                <svg className="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+              </div>
+              <h3>手机实时预览</h3>
+              <p>一键切换手机预览模式，在模拟手机框中实时查看文章效果，排版所见即所得。</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon-wrapper">
+                <svg className="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="4 7 4 4 20 4 20 7" />
+                  <line x1="9" y1="20" x2="15" y2="20" />
+                  <line x1="12" y1="4" x2="12" y2="20" />
+                </svg>
+              </div>
+              <h3>富文本工具栏</h3>
+              <p>支持 H1-H3 标题、粗体、斜体、引用、列表、代码块等快捷键和工具栏按钮，无需记忆语法。</p>
             </div>
           </div>
         </div>
@@ -108,8 +133,8 @@ const HomePage: React.FC = () => {
           <div className="steps">
             <div className="step">
               <div className="step-number">1</div>
-              <h3>写 Markdown</h3>
-              <p>在编辑器中撰写内容，支持所有常用 Markdown 语法。</p>
+              <h3>写内容</h3>
+              <p>在所见即所得编辑器中直接撰写，或粘贴 Markdown 内容。</p>
             </div>
             <div className="step-connector" />
             <div className="step">
