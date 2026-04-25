@@ -33,6 +33,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
   const isFirstRender = useRef(true);
   const isExternalUpdate = useRef(false);
   const prevContentRef = useRef(content);
+  const fromEditor = useRef(false);
 
   const { loading, get } = useEditor((rootEl) => {
     return Editor.make()
@@ -46,6 +47,7 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
         ctx.set(listenerCtx, new ListenerManager()
           .markdownUpdated((_ctx, md, prev) => {
             if (md !== prev && !isExternalUpdate.current) {
+              fromEditor.current = true;
               onChange(md);
             }
           })
@@ -92,6 +94,13 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
 
     if (content !== prevContentRef.current) {
       prevContentRef.current = content;
+
+      // 内容变更来自编辑器自身（用户打字），无需同步回编辑器
+      if (fromEditor.current) {
+        fromEditor.current = false;
+        return;
+      }
+
       isExternalUpdate.current = true;
 
       const editor = get();
