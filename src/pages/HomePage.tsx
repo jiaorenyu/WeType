@@ -1,12 +1,58 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import './HomePage.css';
+
+const SITE_URL = 'https://writenow.cn';
+const SITE_NAME = 'WriteNow';
+const DEFAULT_DESC = 'WriteNow — 极简 Markdown 转公众号排版工具。类 Typora 所见即所得编辑，三套精美主题，一键复制到微信后台。免登录，开源免费，30 秒完成排版。';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <div className="home">
+      <Helmet>
+        <title>{SITE_NAME} — 极简 Markdown 转公众号排版工具</title>
+        <meta name="description" content={DEFAULT_DESC} />
+        <meta name="keywords" content="Markdown,公众号排版,微信排版,Markdown转公众号,排版工具,所见即所得" />
+
+        {/* Open Graph */}
+        <meta property="og:title" content={`${SITE_NAME} — 极简 Markdown 转公众号排版工具`} />
+        <meta property="og:description" content={DEFAULT_DESC} />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:locale" content="zh_CN" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${SITE_NAME} — 极简 Markdown 转公众号排版工具`} />
+        <meta name="twitter:description" content={DEFAULT_DESC} />
+
+        {/* 结构化数据 */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: SITE_NAME,
+            url: SITE_URL,
+            description: DEFAULT_DESC,
+            applicationCategory: 'UtilityApplication',
+            operatingSystem: 'All',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'CNY',
+            },
+            author: {
+              '@type': 'Person',
+              name: 'WriteNow',
+            },
+          })}
+        </script>
+      </Helmet>
+
       {/* 导航栏 */}
       <nav className="home-nav">
         <div className="home-nav-inner">
