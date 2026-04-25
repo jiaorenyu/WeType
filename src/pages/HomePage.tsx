@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import './HomePage.css';
 
-const SITE_URL = 'https://writenow.cn';
+const SITE_URL = 'https://www.yigu.online';
 const SITE_NAME = 'WriteNow';
 const DEFAULT_DESC = 'WriteNow — 极简 Markdown 转公众号排版工具。类 Typora 所见即所得编辑，三套精美主题，一键复制到微信后台。免登录，开源免费，30 秒完成排版。';
 
