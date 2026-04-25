@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Editor } from '@milkdown/kit/core';
-import { defaultValueCtx, parserCtx, editorViewCtx } from '@milkdown/kit/core';
+import { defaultValueCtx, parserCtx, editorViewCtx, rootCtx, editorViewOptionsCtx } from '@milkdown/kit/core';
 import { commonmark } from '@milkdown/kit/preset/commonmark';
 import { gfm } from '@milkdown/kit/preset/gfm';
 import { listener, listenerCtx, ListenerManager } from '@milkdown/kit/plugin/listener';
 import { history } from '@milkdown/kit/plugin/history';
 import { Milkdown, useEditor } from '@milkdown/react';
+import { isMarkdown } from '../utils/clipboard';
 
 // 主题 CSS 选择器适配
 function adaptThemeCss(themeCss: string): string {
@@ -32,9 +33,11 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
   const isExternalUpdate = useRef(false);
   const prevContentRef = useRef(content);
 
-  const { loading, get } = useEditor(() => {
+  const { loading, get } = useEditor((rootEl) => {
     return Editor.make()
       .config((ctx) => {
+        // 使用 React 管理的根元素，而非 document.body
+        if (rootEl) ctx.set(rootCtx, rootEl);
         // 设置初始内容
         ctx.set(defaultValueCtx, content);
 
@@ -46,6 +49,24 @@ const MilkdownEditor: React.FC<MilkdownEditorProps> = ({
             }
           })
         );
+
+        // 拦截内部粘贴，将 Markdown 文本解析为 WYSIWYG
+        ctx.set(editorViewOptionsCtx, {
+          handlePaste: (view, event) => {
+            const text = event.clipboardData?.getData('text/plain');
+            if (text && isMarkdown(text)) {
+              const p = ctx.get(parserCtx);
+              const doc = p(text);
+              if (doc) {
+                const { from, to } = view.state.selection;
+                const tr = view.state.tr.replaceWith(from, to, doc.content);
+                view.dispatch(tr);
+                return true;
+              }
+            }
+            return false;
+          },
+        });
       })
       .use(commonmark)
       .use(gfm)

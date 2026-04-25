@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Editor } from '@milkdown/kit/core';
+import { parserCtx, editorViewCtx } from '@milkdown/kit/core';
 import { MilkdownProvider } from '@milkdown/react';
 import MilkdownEditor from '../components/MilkdownEditor';
 import EditorToolbar from '../components/EditorToolbar';
@@ -12,12 +14,25 @@ import { sampleMarkdown } from '../sampleContent';
 import { ThemeType } from '../types';
 import '../App.css';
 
+/** 通过 editor.action 将 Markdown 内容设置到编辑器中 */
+function setEditorContent(editor: Editor, md: string): void {
+  editor.action((ctx) => {
+    const view = ctx.get(editorViewCtx);
+    const p = ctx.get(parserCtx);
+    const doc = p(md);
+    if (!doc) return;
+    const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content);
+    view.dispatch(tr);
+  });
+}
+
 const EditorContent: React.FC = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState(sampleMarkdown);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('geek');
   const [copied, setCopied] = useState(false);
   const [pasteNotification, setPasteNotification] = useState(false);
+  const editorRef = useRef<Editor | null>(null);
 
   // 主题切换
   const handleThemeChange = (themeName: ThemeType) => {
@@ -26,9 +41,12 @@ const EditorContent: React.FC = () => {
     }
   };
 
-  // 编辑器就绪
-  const handleEditorReady = useCallback((_getEditor: () => any) => {
-    // Editor instance is available via the callback if needed
+  // 编辑器就绪 — 保存 editor 实例
+  const handleEditorReady = useCallback((getEditor: () => Editor | undefined) => {
+    const editor = getEditor();
+    if (editor) {
+      editorRef.current = editor;
+    }
   }, []);
 
   // 复制到公众号
@@ -57,17 +75,25 @@ const EditorContent: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 加载示例文章
-  const handleLoadSample = () => {
+  // 加载示例文章（使用 editor API 直接设置）
+  const handleLoadSample = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      setEditorContent(editor, sampleMarkdown);
+    }
     setContent(sampleMarkdown);
-  };
+  }, []);
 
   // 清空内容
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) {
+      setEditorContent(editor, '');
+    }
     setContent('');
-  };
+  }, []);
 
-  // 全局粘贴监听
+  // 全局粘贴监听 — 编辑器未聚焦时检测 Markdown 并加载
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const activeElement = document.activeElement;
@@ -77,6 +103,10 @@ const EditorContent: React.FC = () => {
         const pastedText = e.clipboardData.getData('text');
         if (pastedText && isMarkdown(pastedText)) {
           e.preventDefault();
+          const editor = editorRef.current;
+          if (editor) {
+            setEditorContent(editor, pastedText);
+          }
           setContent(pastedText);
           setPasteNotification(true);
           setTimeout(() => setPasteNotification(false), 2000);
