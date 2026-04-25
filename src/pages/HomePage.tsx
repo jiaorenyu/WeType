@@ -14,8 +14,11 @@ const HomePage: React.FC = () => {
     <div className="home">
       <Helmet>
         <title>{SITE_NAME} — 极简 Markdown 转公众号排版工具</title>
+        <link rel="canonical" href={SITE_URL} />
         <meta name="description" content={DEFAULT_DESC} />
         <meta name="keywords" content="Markdown,公众号排版,微信排版,Markdown转公众号,排版工具,所见即所得" />
+        {/* 百度站长验证 — 替换 content 为你在百度站长平台获取的值 */}
+        <meta name="baidu-site-verification" content="请替换为百度站长验证码" />
 
         {/* Open Graph */}
         <meta property="og:title" content={`${SITE_NAME} — 极简 Markdown 转公众号排版工具`} />

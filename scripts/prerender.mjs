@@ -1,12 +1,11 @@
 /**
  * Post-build prerender script.
  * Starts a static server for the dist/ output, uses puppeteer-core
- * (which connects to the system-installed Chrome) to render the
- * SPA homepage, then saves the fully rendered HTML back to
- * dist/index.html so crawlers see the content immediately.
+ * (which connects to the system-installed Chrome) to render SPA routes,
+ * then saves the fully rendered HTML so crawlers see the content immediately.
  *
  * Usage:  node scripts/prerender.mjs
- * Called automatically after `npm run build` via the "postbuild" hook.
+ * Called automatically after `npm run build` via the build script.
  */
 
 import { launch } from 'puppeteer-core';
@@ -18,6 +17,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '../dist');
 const PORT = 4174;
+
+/* ========== routes to prerender ==========
+ *   pathname  →  output file            →  CSS selector to wait for
+ */
+const ROUTES = [
+  { pathname: '/',       file: 'index.html',         waitFor: '.home-nav' },
+  { pathname: '/editor', file: 'editor/index.html',  waitFor: 'body'      },
+];
 
 /* ---------- helpers ---------- */
 
@@ -45,25 +52,20 @@ function serveFile(res, filePath) {
   return true;
 }
 
-/* ---------- find Chrome ---------- */
-
 function findChrome() {
   const candidates = [
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    // Linux
     '/usr/bin/google-chrome',
     '/usr/bin/google-chrome-stable',
     '/usr/bin/chromium-browser',
     '/usr/bin/chromium',
-    // Windows (WSL / cross-platform)
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
   ];
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
-  // Fall back to puppeteer's detection
   return undefined;
 }
 
@@ -75,8 +77,6 @@ async function prerender() {
   const server = http.createServer((req, res) => {
     let url = new URL(req.url, `http://localhost:${PORT}`);
     let filePath = path.join(distDir, url.pathname === '/' ? 'index.html' : url.pathname);
-
-    // SPA fallback: if the file doesn't exist, serve index.html
     if (!serveFile(res, filePath)) {
       serveFile(res, path.join(distDir, 'index.html'));
     }
@@ -87,7 +87,7 @@ async function prerender() {
 
   const chromePath = findChrome();
   if (!chromePath) {
-    console.warn('[prerender] Chrome not found — skipping prerender. Install Chrome or set CHROME_PATH.');
+    console.warn('[prerender] Chrome not found — skipping. Install Chrome or set CHROME_PATH.');
     server.close();
     return;
   }
@@ -100,22 +100,29 @@ async function prerender() {
   });
 
   try {
-    const page = await browser.newPage();
-    await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'networkidle0' });
+    // ---------- Prerender each route ----------
+    for (const route of ROUTES) {
+      try {
+        const page = await browser.newPage();
+        const url = `http://localhost:${PORT}${route.pathname}`;
 
-    // Wait for the homepage to actually render
-    await page.waitForSelector('.home-nav', { timeout: 10000 });
+        await page.goto(url, { waitUntil: 'networkidle0' });
+        await page.waitForSelector(route.waitFor, { timeout: 15000 });
+        // Extra settle time for async rendering
+        await new Promise((r) => setTimeout(r, 500));
 
-    // Small extra wait for any async rendering / fonts
-    await new Promise((r) => setTimeout(r, 500));
+        const html = await page.content();
 
-    const html = await page.content();
+        const outPath = path.join(distDir, route.file);
+        fs.mkdirSync(path.dirname(outPath), { recursive: true });
+        fs.writeFileSync(outPath, html);
 
-    // Write back to dist/index.html
-    const outPath = path.join(distDir, 'index.html');
-    fs.writeFileSync(outPath, html);
-    console.log(`[prerender] ✅ Prerendered homepage saved (${(html.length / 1024).toFixed(1)} KB)`);
-    await page.close();
+        console.log(`[prerender] ✅ ${route.pathname} → ${route.file} (${(html.length / 1024).toFixed(1)} KB)`);
+        await page.close();
+      } catch (err) {
+        console.warn(`[prerender] ⚠️  ${route.pathname} failed: ${err.message}`);
+      }
+    }
 
     // ---------- Generate og:image PNG ----------
     try {
