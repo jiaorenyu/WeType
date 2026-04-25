@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SimpleEditor from '../components/SimpleEditor';
-import Preview from '../components/Preview';
-import QuickHints from '../components/QuickHints';
+import { MilkdownProvider } from '@milkdown/react';
+import MilkdownEditor from '../components/MilkdownEditor';
+import EditorToolbar from '../components/EditorToolbar';
 import ThemeSelector from '../components/ThemeSelector';
 import { getThemeByName } from '../themes';
 import { parseMarkdown, extractPlainText } from '../utils/markdown';
@@ -12,43 +12,28 @@ import { sampleMarkdown } from '../sampleContent';
 import { ThemeType } from '../types';
 import '../App.css';
 
-const EditorPage: React.FC = () => {
+const EditorContent: React.FC = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState(sampleMarkdown);
-  const [html, setHtml] = useState('');
   const [currentTheme, setCurrentTheme] = useState<ThemeType>('geek');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showHints, setShowHints] = useState(true);
   const [copied, setCopied] = useState(false);
   const [pasteNotification, setPasteNotification] = useState(false);
-  const editorRef = useRef<HTMLDivElement>(null);
-
-  // 解析 Markdown
-  useEffect(() => {
-    const parsedHtml = parseMarkdown(content);
-    setHtml(parsedHtml);
-  }, [content]);
-
-  // 显示/隐藏语法提示
-  useEffect(() => {
-    setShowHints(content.trim().length === 0);
-  }, [content]);
 
   // 主题切换
   const handleThemeChange = (themeName: ThemeType) => {
     if (themeName !== currentTheme) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentTheme(themeName);
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 100);
-      }, 200);
+      setCurrentTheme(themeName);
     }
   };
 
+  // 编辑器就绪
+  const handleEditorReady = useCallback((_getEditor: () => any) => {
+    // Editor instance is available via the callback if needed
+  }, []);
+
   // 复制到公众号
   const handleCopy = async () => {
+    const html = parseMarkdown(content);
     const theme = getThemeByName(currentTheme);
     const wechatHtml = generateWeChatHtml(html, theme);
     const plainText = extractPlainText(html);
@@ -86,7 +71,7 @@ const EditorPage: React.FC = () => {
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const activeElement = document.activeElement;
-      const isEditorFocused = activeElement?.closest('.editor-wrapper');
+      const isEditorFocused = activeElement?.closest('.milkdown-editor-wrapper');
 
       if (!isEditorFocused && e.clipboardData) {
         const pastedText = e.clipboardData.getData('text');
@@ -140,59 +125,46 @@ const EditorPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 主内容区 */}
-      <main className="main">
-        {/* 编辑器 */}
-        <section className="editor-section">
-          <div className="editor-container" ref={editorRef}>
-            <SimpleEditor
-              value={content}
-              onChange={setContent}
-            />
-            <QuickHints visible={showHints} />
-          </div>
-          <div className="editor-footer">
-            <button className="control-button-secondary" onClick={handleClear}>
-              清空
-            </button>
-            <button className="control-button-secondary" onClick={handleLoadSample}>
-              示例文章
-            </button>
-          </div>
-        </section>
-
-        {/* 预览区 */}
-        <section className="preview-section">
-          <div className="preview-container">
-            <Preview
-              html={html}
-              themeName={currentTheme}
-              isTransitioning={isTransitioning}
-            />
-          </div>
-          <div className="preview-footer">
-            <button className="download-button" onClick={handleDownload}>
-              <span className="icon">↓</span>
-              下载 .md
-            </button>
-            <button
-              className={`copy-button ${copied ? 'copied' : ''}`}
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <>
-                  <span className="icon">✓</span>
-                  已复制！
-                </>
-              ) : (
-                <>
-                  <span className="icon">📋</span>
-                  复制到公众号
-                </>
-              )}
-            </button>
-          </div>
-        </section>
+      {/* 编辑器区域 - 单栏布局 */}
+      <main className="editor-main">
+        <EditorToolbar />
+        <div className="editor-content-area">
+          <MilkdownEditor
+            content={content}
+            onChange={setContent}
+            themeCss={getThemeByName(currentTheme).css}
+            onReady={handleEditorReady}
+          />
+        </div>
+        <div className="editor-action-bar">
+          <button className="action-btn secondary" onClick={handleClear}>
+            清空
+          </button>
+          <button className="action-btn secondary" onClick={handleLoadSample}>
+            示例文章
+          </button>
+          <div className="action-bar-spacer" />
+          <button className="action-btn secondary" onClick={handleDownload}>
+            <span className="icon">↓</span>
+            下载 .md
+          </button>
+          <button
+            className={`action-btn primary ${copied ? 'copied' : ''}`}
+            onClick={handleCopy}
+          >
+            {copied ? (
+              <>
+                <span className="icon">✓</span>
+                已复制！
+              </>
+            ) : (
+              <>
+                <span className="icon">📋</span>
+                复制到公众号
+              </>
+            )}
+          </button>
+        </div>
       </main>
 
       {/* 粘贴通知 */}
@@ -202,6 +174,14 @@ const EditorPage: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const EditorPage: React.FC = () => {
+  return (
+    <MilkdownProvider>
+      <EditorContent />
+    </MilkdownProvider>
   );
 };
 

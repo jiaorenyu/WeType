@@ -9,7 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'codemirror': ['@codemirror/view', '@codemirror/state', '@codemirror/lang-markdown', '@codemirror/theme-one-dark', '@codemirror/basic-setup'],
+          'milkdown': ['@milkdown/kit', '@milkdown/react'],
           'markdown': ['markdown-it', 'highlight.js'],
           'juice': ['juice']
         }
